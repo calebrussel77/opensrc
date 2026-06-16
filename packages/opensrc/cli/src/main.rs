@@ -3,8 +3,6 @@ mod core;
 
 use clap::{Parser, Subcommand};
 
-const COMMANDS: &[&str] = &["fetch", "path", "list", "remove", "rm", "clean"];
-
 #[derive(Parser)]
 #[command(name = "opensrc")]
 #[command(about = "Fetch source code for packages to give coding agents deeper context")]
@@ -73,27 +71,7 @@ enum Commands {
     },
 }
 
-fn default_path_specs(args: &[String]) -> Option<Vec<String>> {
-    let specs = args.get(1..)?;
-    let first = specs.first()?;
-
-    if first.starts_with('-') || COMMANDS.contains(&first.as_str()) {
-        return None;
-    }
-
-    Some(specs.to_vec())
-}
-
 fn main() {
-    let args: Vec<String> = std::env::args().collect();
-    if let Some(packages) = default_path_specs(&args) {
-        if let Err(e) = commands::path::run(&packages, None, false) {
-            eprintln!("Error: {e}");
-            std::process::exit(1);
-        }
-        return;
-    }
-
     let cli = Cli::parse();
 
     let result = match cli.command {
@@ -142,37 +120,5 @@ fn main() {
     if let Err(e) = result {
         eprintln!("Error: {e}");
         std::process::exit(1);
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_default_path_specs_accepts_repo_url() {
-        let args = vec![
-            "opensrc".to_string(),
-            "https://github.com/calebrussel77/nfluenzo".to_string(),
-        ];
-
-        assert_eq!(
-            default_path_specs(&args),
-            Some(vec!["https://github.com/calebrussel77/nfluenzo".to_string()])
-        );
-    }
-
-    #[test]
-    fn test_default_path_specs_ignores_known_subcommand() {
-        let args = vec!["opensrc".to_string(), "path".to_string(), "zod".to_string()];
-
-        assert_eq!(default_path_specs(&args), None);
-    }
-
-    #[test]
-    fn test_default_path_specs_ignores_flags() {
-        let args = vec!["opensrc".to_string(), "--help".to_string()];
-
-        assert_eq!(default_path_specs(&args), None);
     }
 }
