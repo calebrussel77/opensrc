@@ -252,7 +252,7 @@ fn resolve_gitlab(spec: &RepoSpec) -> Result<ResolvedRepo> {
 
     if resp.status() == reqwest::StatusCode::NOT_FOUND {
         let hint = if super::gitlab_token().is_none() {
-            " If this is a private repo, set GITLAB_TOKEN."
+            " If this is a private repo, set GITLAB_TOKEN or GL_TOKEN, or run glab auth login."
         } else {
             " Your token may lack access to this repository."
         };

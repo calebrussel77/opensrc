@@ -52,6 +52,29 @@ Options:
 - `--cwd <path>` — working directory for lockfile version resolution
 - `--quiet` / `-q` — suppress progress output
 
+### Private GitHub repos
+
+For local private repos you can use your existing GitHub CLI login:
+
+```bash
+gh auth login
+opensrc path your-org/private-repo
+```
+
+opensrc checks `GITHUB_TOKEN`, then `GH_TOKEN`, then falls back to `gh auth token`. A fine-grained PAT needs read-only Contents access for the repositories you fetch.
+
+### Private GitLab repos
+
+For local private repos you can use your existing GitLab CLI login:
+
+```bash
+glab auth login
+opensrc path gitlab:your-group/private-project
+opensrc path https://gitlab.com/ahtc1/odoya-frontend
+```
+
+opensrc checks `GITLAB_TOKEN`, then `GL_TOKEN`, then falls back to `glab auth status --hostname gitlab.com --show-token`. The token needs `read_api` and `read_repository` scopes.
+
 ### List cached sources
 
 ```bash
