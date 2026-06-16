@@ -87,7 +87,7 @@ fn default_path_specs(args: &[String]) -> Option<Vec<String>> {
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     if let Some(packages) = default_path_specs(&args) {
-        if let Err(e) = commands::path::run(&packages, None, false) {
+        if let Err(e) = commands::local::run(&packages, None) {
             eprintln!("Error: {e}");
             std::process::exit(1);
         }
