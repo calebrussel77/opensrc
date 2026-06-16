@@ -2,6 +2,8 @@
 
 Give coding agents access to any package's source code. Resolves packages from registry APIs, shallow-clones at the correct version tag, and caches globally at `~/.opensrc/`.
 
+This repository is a clone of the original [vercel-labs/opensrc](https://github.com/vercel-labs/opensrc).
+
 ## Install
 
 ```bash
