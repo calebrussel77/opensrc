@@ -4,7 +4,6 @@ pub mod pypi;
 pub mod repo;
 
 use serde::{Deserialize, Serialize};
-use std::process::Command;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -136,83 +135,11 @@ pub(crate) fn http_client() -> reqwest::blocking::Client {
 }
 
 pub(crate) fn github_token() -> Option<String> {
-    github_token_from_env().or_else(github_token_from_gh)
-}
-
-fn first_non_empty_env(vars: &[&str]) -> Option<String> {
-    vars.iter().find_map(|var| {
-        std::env::var(var).ok().and_then(|value| {
-            let token = value.trim();
-            (!token.is_empty()).then(|| token.to_string())
-        })
-    })
-}
-
-fn github_token_from_env() -> Option<String> {
-    first_non_empty_env(&["GITHUB_TOKEN", "GH_TOKEN"])
-}
-
-fn parse_gh_token_output(status_success: bool, stdout: &[u8]) -> Option<String> {
-    if !status_success {
-        return None;
-    }
-
-    let token = String::from_utf8_lossy(stdout).trim().to_string();
-    (!token.is_empty()).then_some(token)
-}
-
-fn github_token_from_gh() -> Option<String> {
-    let output = Command::new("gh")
-        .args(["auth", "token"])
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::null())
-        .output()
-        .ok()?;
-
-    parse_gh_token_output(output.status.success(), &output.stdout)
+    std::env::var("GITHUB_TOKEN").ok().filter(|t| !t.is_empty())
 }
 
 pub(crate) fn gitlab_token() -> Option<String> {
-    gitlab_token_from_env().or_else(gitlab_token_from_glab)
-}
-
-fn gitlab_token_from_env() -> Option<String> {
-    first_non_empty_env(&["GITLAB_TOKEN", "GL_TOKEN"])
-}
-
-fn parse_labeled_token_line(line: &str) -> Option<String> {
-    let trimmed = line.trim();
-    let label_end = trimmed.find(':')?;
-    let label = trimmed[..label_end].trim().to_lowercase();
-
-    if !label.ends_with("token") {
-        return None;
-    }
-
-    let token = trimmed[label_end + 1..].trim();
-    (!token.is_empty()).then(|| token.to_string())
-}
-
-fn parse_glab_auth_status_output(status_success: bool, output: &[u8]) -> Option<String> {
-    if !status_success {
-        return None;
-    }
-
-    let output = String::from_utf8_lossy(output);
-    output.lines().find_map(parse_labeled_token_line)
-}
-
-fn gitlab_token_from_glab() -> Option<String> {
-    let output = Command::new("glab")
-        .args(["auth", "status", "--hostname", "gitlab.com", "--show-token"])
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped())
-        .output()
-        .ok()?;
-
-    let mut combined = output.stdout;
-    combined.extend_from_slice(&output.stderr);
-    parse_glab_auth_status_output(output.status.success(), &combined)
+    std::env::var("GITLAB_TOKEN").ok().filter(|t| !t.is_empty())
 }
 
 pub(crate) fn bitbucket_token() -> Option<String> {
@@ -331,48 +258,6 @@ mod tests {
         assert_eq!(
             normalize_repo_url("https://github.com/owner/repo"),
             "https://github.com/owner/repo"
-        );
-    }
-
-    #[test]
-    fn test_parse_gh_token_output_trims_token() {
-        assert_eq!(
-            parse_gh_token_output(true, b"gho_example\n"),
-            Some("gho_example".to_string())
-        );
-    }
-
-    #[test]
-    fn test_parse_gh_token_output_ignores_empty_success() {
-        assert_eq!(parse_gh_token_output(true, b"\n"), None);
-    }
-
-    #[test]
-    fn test_parse_gh_token_output_ignores_failure() {
-        assert_eq!(parse_gh_token_output(false, b"gho_example\n"), None);
-    }
-
-    #[test]
-    fn test_parse_glab_auth_status_output_reads_token_line() {
-        assert_eq!(
-            parse_glab_auth_status_output(true, b"gitlab.com\n  Token: glpat-example\n"),
-            Some("glpat-example".to_string())
-        );
-    }
-
-    #[test]
-    fn test_parse_glab_auth_status_output_ignores_failure() {
-        assert_eq!(
-            parse_glab_auth_status_output(false, b"  Token: glpat-example\n"),
-            None
-        );
-    }
-
-    #[test]
-    fn test_parse_labeled_token_line_reads_oauth_token() {
-        assert_eq!(
-            parse_labeled_token_line("  OAuth token: gloas-example"),
-            Some("gloas-example".to_string())
         );
     }
 }

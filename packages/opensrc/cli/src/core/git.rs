@@ -31,33 +31,7 @@ fn git_clone_output(args: &[&str]) -> std::io::Result<std::process::Output> {
 }
 
 fn stderr_string(output: &std::process::Output) -> String {
-    redact_credentials(&String::from_utf8_lossy(&output.stderr))
-        .trim()
-        .to_string()
-}
-
-fn redact_credentials(input: &str) -> String {
-    let mut redacted = input.to_string();
-
-    for host in ["github.com", "gitlab.com", "bitbucket.org"] {
-        let needle = "https://";
-        let host_marker = format!("@{host}");
-        let mut search_from = 0;
-
-        while let Some(relative_start) = redacted[search_from..].find(needle) {
-            let start = search_from + relative_start + needle.len();
-            let Some(relative_at) = redacted[start..].find(&host_marker) else {
-                search_from = start;
-                continue;
-            };
-
-            let at = start + relative_at;
-            redacted.replace_range(start..at, "TOKEN_REDACTED");
-            search_from = start + "TOKEN_REDACTED".len() + host_marker.len();
-        }
-    }
-
-    redacted
+    String::from_utf8_lossy(&output.stderr).trim().to_string()
 }
 
 fn clone_at_tag(repo_url: &str, target: &Path, version: &str) -> CloneResult {
@@ -280,27 +254,4 @@ pub fn fetch_repo_source(resolved: &ResolvedRepo) -> Result<FetchResult> {
         error: clone.error,
         registry: None,
     })
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_redact_github_clone_credentials() {
-        let msg =
-            "fatal: could not read from https://x-access-token:ghp_secret@github.com/owner/repo";
-
-        assert_eq!(
-            redact_credentials(msg),
-            "fatal: could not read from https://TOKEN_REDACTED@github.com/owner/repo"
-        );
-    }
-
-    #[test]
-    fn test_redact_leaves_public_clone_url() {
-        let msg = "fatal: could not read from https://github.com/owner/repo";
-
-        assert_eq!(redact_credentials(msg), msg);
-    }
 }

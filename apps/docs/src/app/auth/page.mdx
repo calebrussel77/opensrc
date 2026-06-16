@@ -1,45 +1,27 @@
 # Authentication
 
-opensrc can authenticate against private repositories and registry APIs. Set only the credentials you need — nothing is persisted by opensrc.
+opensrc reads three environment variables to authenticate against private repositories and registry APIs. Set only the ones you need — nothing is persisted, tokens are read from the environment on each run.
 
 Tokens are used for both resolving a repository's default branch (via each host's API) and for the underlying `git clone` over HTTPS.
 
 ## GitHub
 
-For local use, sign in with the GitHub CLI:
-
-```bash
-gh auth login
-opensrc path your-org/private-repo
-```
-
-opensrc first reads `GITHUB_TOKEN`, then `GH_TOKEN`, then falls back to `gh auth token` when the GitHub CLI is installed and authenticated.
-
-For CI or shells where you want explicit credentials, set `GITHUB_TOKEN` or `GH_TOKEN` to a personal access token:
+Set `GITHUB_TOKEN` to a personal access token:
 
 ```bash
 export GITHUB_TOKEN=ghp_your_token_here
-opensrc path your-org/private-repo
+opensrc path vercel/private-repo
 ```
 
 A fine-grained PAT with **read-only "Contents"** access to the repositories you need, or a classic PAT with the `repo` scope, is sufficient. Setting the token also raises the anonymous GitHub API rate limit from 60 requests/hour to 5,000 requests/hour.
 
 ## GitLab
 
-For local use, sign in with the GitLab CLI:
-
-```bash
-glab auth login
-opensrc path gitlab:your-group/private-project
-```
-
-opensrc first reads `GITLAB_TOKEN`, then `GL_TOKEN`, then falls back to `glab auth status --hostname gitlab.com --show-token` when the GitLab CLI is installed and authenticated.
-
-For CI or shells where you want explicit credentials, set `GITLAB_TOKEN` or `GL_TOKEN` to a personal access token:
+Set `GITLAB_TOKEN` to a personal access token:
 
 ```bash
 export GITLAB_TOKEN=glpat_your_token_here
-opensrc path gitlab:your-group/private-project
+opensrc path gitlab:group/private-project
 ```
 
 The token needs the `read_api` and `read_repository` scopes.
@@ -57,4 +39,4 @@ The token needs read access to the repository. Bitbucket Cloud is phasing out ap
 
 ## CI and shells
 
-In CI, set the token as a masked secret environment variable. In an interactive shell, use `gh auth login` or `glab auth login`, export a token from your shell profile, or source a local `.env` on demand. opensrc never writes tokens to disk.
+In CI, set the token as a masked secret environment variable. In an interactive shell, export it from your shell profile or a local `.env` that you source on demand. opensrc never writes tokens to disk.
