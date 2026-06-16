@@ -14,50 +14,35 @@ Installing globally gives you the native Rust binary directly — no Node.js ove
 
 ## Usage
 
-`opensrc <package-or-repo>` fetches source code and copies it into an `opensrc/` folder in the current directory:
+`opensrc <package-or-repo>` prints the absolute path to a package's source, fetching on cache miss. Compose it with any tool:
 
 ```bash
+rg "parse" $(opensrc zod)
+cat $(opensrc zod)/src/types.ts
+find $(opensrc pypi:requests) -name "*.py"
+ls $(opensrc crates:serde)/src/
+grep -r "Router" $(opensrc vercel/next.js)/packages/next/src/
 opensrc https://github.com/calebrussel77/nfluenzo
-opensrc gitlab:your-group/private-project
-opensrc zod
 ```
 
-That creates folders like:
+Multiple packages at once:
 
 ```bash
-opensrc/nfluenzo
-opensrc/private-project
-opensrc/zod
+rg "parse" $(opensrc zod react next)
 ```
 
-### Print cache paths
-
-`opensrc path` prints the absolute path to cached source, fetching on cache miss. Compose it with any tool:
+Specific versions:
 
 ```bash
-rg "parse" $(opensrc path zod)
-cat $(opensrc path zod)/src/types.ts
-find $(opensrc path pypi:requests) -name "*.py"
-ls $(opensrc path crates:serde)/src/
-grep -r "Router" $(opensrc path vercel/next.js)/packages/next/src/
+rg "ZodError" $(opensrc zod@3.22.0)
+cat $(opensrc pypi:flask@3.0.0)/src/flask/app.py
 ```
 
 Options:
 - `--cwd <path>` — working directory for lockfile version resolution
 - `--verbose` — show progress during fetch
 
-Multiple packages at once:
-
-```bash
-rg "parse" $(opensrc path zod react next)
-```
-
-Specific versions:
-
-```bash
-rg "ZodError" $(opensrc path zod@3.22.0)
-cat $(opensrc path pypi:flask@3.0.0)/src/flask/app.py
-```
+The explicit `opensrc path <package-or-repo>` form is still supported when you need `--cwd` or `--verbose`.
 
 ### Fetch source code
 
