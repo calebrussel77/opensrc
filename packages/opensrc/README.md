@@ -14,32 +14,35 @@ Installing globally gives you the native Rust binary directly — no Node.js ove
 
 ## Usage
 
-`opensrc path` prints the absolute path to a package's source, fetching on cache miss. Compose it with any tool:
+`opensrc <package-or-repo>` prints the absolute path to a package's source, fetching on cache miss. Compose it with any tool:
 
 ```bash
-rg "parse" $(opensrc path zod)
-cat $(opensrc path zod)/src/types.ts
-find $(opensrc path pypi:requests) -name "*.py"
-ls $(opensrc path crates:serde)/src/
-grep -r "Router" $(opensrc path vercel/next.js)/packages/next/src/
+rg "parse" $(opensrc zod)
+cat $(opensrc zod)/src/types.ts
+find $(opensrc pypi:requests) -name "*.py"
+ls $(opensrc crates:serde)/src/
+grep -r "Router" $(opensrc vercel/next.js)/packages/next/src/
+opensrc https://github.com/calebrussel77/nfluenzo
 ```
 
 Multiple packages at once:
 
 ```bash
-rg "parse" $(opensrc path zod react next)
+rg "parse" $(opensrc zod react next)
 ```
 
 Specific versions:
 
 ```bash
-rg "ZodError" $(opensrc path zod@3.22.0)
-cat $(opensrc path pypi:flask@3.0.0)/src/flask/app.py
+rg "ZodError" $(opensrc zod@3.22.0)
+cat $(opensrc pypi:flask@3.0.0)/src/flask/app.py
 ```
 
 Options:
 - `--cwd <path>` — working directory for lockfile version resolution
 - `--verbose` — show progress during fetch
+
+The explicit `opensrc path <package-or-repo>` form is still supported when you need `--cwd` or `--verbose`.
 
 ### Fetch source code
 
